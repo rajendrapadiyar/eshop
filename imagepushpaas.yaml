@@ -1,0 +1,47 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+
+- task: DockerCompose@0
+  displayName: Build services
+  inputs:
+    action: Build services
+    azureSubscriptionEndpoint: 'apps-srv-con'
+    azureContainerRegistry: '{"loginServer":"hcleusacrdt05.azurecr.io", "id" : "/subscriptions/3bb522ac-a1ae-4ca9-89bc-241e86b6d8e3/resourceGroups/hcl-eus-rsg-d-acr/providers/Microsoft.ContainerRegistry/registries/demoeusacrdt01"}'
+    dockerComposeFile: '**/src/docker-compose.yml'
+    projectName: $(Build.Repository.Name)
+    qualifyImageNames: true
+    additionalImageTags: $(Build.BuildId)
+
+- task: DockerCompose@0
+  displayName: Push services
+  inputs:
+    action: Push services
+    azureSubscriptionEndpoint: 'apps-srv-con'
+    azureContainerRegistry: '{"loginServer":"hcleusacrdt05.azurecr.io", "id" : "/subscriptions/3bb522ac-a1ae-4ca9-89bc-241e86b6d8e3/resourceGroups/hcl-eus-rsg-d-acr/providers/Microsoft.ContainerRegistry/registries/demoeusacrdt01"}'
+    dockerComposeFile: '**/src/docker-compose.yml'
+    projectName: $(Build.Repository.Name)
+    qualifyImageNames: true
+    additionalImageTags: $(Build.BuildId)
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'eShopArtifact'
+    publishLocation: 'pipeline'
+
+

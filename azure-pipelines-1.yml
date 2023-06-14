@@ -1,0 +1,41 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- none
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- task: DockerCompose@0
+  displayName: Build services
+  inputs:
+    action: Build services
+    azureSubscription: 'apps-srv-con'
+    azureContainerRegistry: '{"loginServer":"demoeusacrdt01.azurecr.io", "id" : "/subscriptions/3bb522ac-a1ae-4ca9-89bc-241e86b6d8e3/resourceGroups/hcl-eus-rsg-d-storage/providers/Microsoft.ContainerRegistry/registries/demoeusacrdt01"}'
+    dockerComposeFile: '**/src/docker-compose.yml'
+    projectName: $(Build.Repository.Name)
+    qualifyImageNames: true
+    additionalImageTags: $(Build.BuildId)
+
+
+- task: DockerCompose@0
+
+  displayName: Push services
+  inputs:
+    action: Push services
+    azureSubscription: 'apps-srv-con'
+    azureContainerRegistry: '{"loginServer":"demoeusacrdt01.azurecr.io", "id" : "/subscriptions/3bb522ac-a1ae-4ca9-89bc-241e86b6d8e3/resourceGroups/hcl-eus-rsg-d-storage/providers/Microsoft.ContainerRegistry/registries/demoeusacrdt01"}'
+    dockerComposeFile: '**/src/docker-compose.yml'
+    projectName: $(Build.Repository.Name)
+    qualifyImageNames: true
+    additionalImageTags: $(Build.BuildId)
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Pipeline.Workspace)'
+    artifact: 'eShopArtifact'
+    publishLocation: 'pipeline'

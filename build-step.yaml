@@ -1,0 +1,25 @@
+parameters:
+  AWS_ACCOUNT_ID: ''
+  AWS_REGION: ''
+  DOCKER_REPOSITORY_NAME: ''
+
+
+jobs:
+- job: Build
+  displayName: Deploying '${{ parameters.folder }}' in '${{ parameters.env }}'
+  steps:
+  - task: DockerCompose@0
+	inputs:
+		containerregistrytype: 'Container Registry'
+		dockerRegistryEndpoint: 'docker-ecr'
+		dockerComposeFile: '**/src/docker-compose.yml'
+		action: 'Build services'
+		additionalImageTags: '$(Build.BuildId)'
+		includeLatestTag: true
+  - task: DockerCompose@0
+	inputs:
+		containerregistrytype: 'Container Registry'
+		dockerRegistryEndpoint: 'docker-ecr'
+		dockerComposeFile: '**/src/docker-compose.yml'
+		action: 'Push services'
+		additionalImageTags: '$(Build.BuildId)'

@@ -1,0 +1,26 @@
+trigger:
+- none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages: 
+  - stage: 'build'
+    jobs:
+    - job: 'login'
+      steps:
+        - task: AWSShellScript@1
+          inputs:
+            awsCredentials: 'aws_service_connection'
+            regionName: 'eu-central-1'
+            scriptType: 'inline'
+            inlineScript: 'aws ecr get-login-password --region ${{ variables.AWS_REGION }} | docker login --username AWS --password-stdin ${{ variables.AWS_ACCOUNT_ID }}.dkr.ecr.${{ variables.AWS_REGION }}.amazonaws.com'
+    
+    - template: ./build-step.yaml
+      parameters:    
+        AWS_ACCOUNT_ID: ${{ variables.AWS_ACCOUNT_ID }}
+        AWS_REGION: ${{ variables.AWS_REGION }}
+        DOCKER_REPOSITORY_NAME: ${{ variables.DOCKER_REPOSITORY_NAME }}
+        AWS_ACCESS_KEY_ID: ${{ variables.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ variables.AWS_SECRET_ACCESS_KEY }}
+    
